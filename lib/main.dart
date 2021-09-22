@@ -24,28 +24,56 @@ class RandomWords extends StatefulWidget {
 class _RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
   final _saved = <WordPair>{};
+  final _purchased = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18.0);
 
   Widget _buildRow(WordPair pair) {
     final alreadySaved = _saved.contains(pair);
+    final alreadyPurchased = _purchased.contains(pair);
     return ListTile(
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
-      trailing: Icon(
-        alreadySaved ? Icons.favorite : Icons.favorite_border,
-        color: alreadySaved ? Colors.red : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+              onPressed: () {
+                {
+                  setState(() {
+                    if (alreadySaved) {
+                      _saved.remove(pair);
+                    } else {
+                      _saved.add(pair);
+                    }
+                  });
+                }
+              },
+              icon: Icon(
+                alreadySaved ? Icons.favorite : Icons.favorite_border,
+                color: alreadySaved ? Colors.red : null,
+              )),
+          IconButton(
+              onPressed: () {
+                {
+                  setState(() {
+                    if (alreadyPurchased) {
+                      _purchased.remove(pair);
+                    } else {
+                      _purchased.add(pair);
+                    }
+                  });
+                }
+              },
+              icon: Icon(
+                alreadyPurchased
+                    ? Icons.account_balance_wallet
+                    : Icons.account_balance_wallet_outlined,
+                color: alreadyPurchased ? Colors.green : null,
+              )),
+        ],
       ),
-      onTap: () {
-        setState(() {
-          if (alreadySaved) {
-            _saved.remove(pair);
-          } else {
-            _saved.add(pair);
-          }
-        });
-      },
     );
   }
 
@@ -82,8 +110,35 @@ class _RandomWordsState extends State<RandomWords> {
               : <Widget>[];
           return Scaffold(
             appBar: AppBar(
-              title: Text('Saved Suggestions'),
-            ),
+                title: Text('Saved Suggestions'), backgroundColor: Colors.pink),
+            body: ListView(children: divided),
+          );
+        },
+      ),
+    );
+  }
+
+  void _pushPurchased() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) {
+          final tiles = _purchased.map(
+            (WordPair pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase,
+                  style: _biggerFont,
+                ),
+              );
+            },
+          );
+          final divided = tiles.isNotEmpty
+              ? ListTile.divideTiles(context: context, tiles: tiles).toList()
+              : <Widget>[];
+          return Scaffold(
+            appBar: AppBar(
+                title: Text('Purchased Name Pairs'),
+                backgroundColor: Colors.green),
             body: ListView(children: divided),
           );
         },
@@ -96,8 +151,11 @@ class _RandomWordsState extends State<RandomWords> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Startup Name Generator'),
+        backgroundColor: Colors.purple,
         actions: [
           IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+          IconButton(
+              icon: Icon(Icons.account_balance), onPressed: _pushPurchased),
         ],
       ),
       body: _buildSuggestions(),
